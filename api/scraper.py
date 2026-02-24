@@ -2,7 +2,8 @@ import re, logging, urllib.request, urllib.parse, ssl, gzip, json, base64
 
 log = logging.getLogger(__name__)
 
-OPENROUTER_API_KEY = "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"
+import os
+OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
 SEARCH_MODEL = "perplexity/sonar"
 
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")

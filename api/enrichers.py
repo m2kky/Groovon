@@ -10,12 +10,13 @@ SSL_CTX = ssl.create_default_context()
 SSL_CTX.check_hostname = False
 SSL_CTX.verify_mode = ssl.CERT_NONE
 
-SPOTIFY_CLIENT_ID = "b338118b3bd54ad58d2853187ae0fbff"
-SPOTIFY_CLIENT_SECRET = "f600d7fbe5de47abbf281959f6e7db3f"
-LASTFM_API_KEY = "b25b959554ed76058ac220b7b2e0a026"
-YOUTUBE_API_KEY = "AIzaSyD4hBOQ-5NtPSygCTXkFHkAk0bCDAHbNO8"
-OPENROUTER_API_KEY = "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"
-DISCOGS_TOKEN = "NlzzPNfzFumDtoraKwUpyzMHTSrVLYRYQJTvVFTT"
+import os
+SPOTIFY_CLIENT_ID     = os.environ["SPOTIFY_CLIENT_ID"]
+SPOTIFY_CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
+LASTFM_API_KEY        = os.environ["LASTFM_API_KEY"]
+YOUTUBE_API_KEY       = os.environ["YOUTUBE_API_KEY"]
+OPENROUTER_API_KEY    = os.environ["OPENROUTER_API_KEY"]
+DISCOGS_TOKEN         = os.environ["DISCOGS_TOKEN"]
 MODEL = "google/gemini-2.5-flash"
 
 _spotify_token = None
