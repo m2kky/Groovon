@@ -1,0 +1,225 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="100%" height="100%">
+  <defs>
+    <!-- Light Sweep Gradient for Text -->
+    <linearGradient id="shine" x1="-100%" y1="0" x2="0%" y2="0">
+      <animate attributeName="x1" values="-100%; 200%" dur="3s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="0%; 300%" dur="3s" repeatCount="indefinite" />
+      <stop offset="0%" stop-color="#22C55E"/>
+      <stop offset="50%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+
+    <!-- Core Icon Gradient -->
+    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ADE80"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Dynamic Glow Filters -->
+    <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="ambient-aura" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="25" result="blur" />
+    </filter>
+
+    <style>
+      /* <![CDATA[ */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@800');
+      
+      .logo-text {
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: 52px;
+        letter-spacing: -2px;
+      }
+
+      /* =========================================
+         1. MASTER LOOP SEQUENCE (6 Seconds)
+         ========================================= */
+      
+      /* Split Reveal & Retract for Play Button */
+      .intro-btn { transform-origin: 50px 60px; animation: split-btn 6s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+      @keyframes split-btn {
+        0%, 5% { transform: translateX(60px) scale(0) rotate(-180deg); opacity: 0; }
+        10% { transform: translateX(60px) scale(1.2) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 20px #22C55E); }
+        14% { transform: translateX(60px) scale(1) rotate(0deg); opacity: 1; filter: none; }
+        20%, 65% { transform: translateX(0px) scale(1); opacity: 1; }
+        71% { transform: translateX(60px) scale(1) rotate(0deg); opacity: 1; filter: none; }
+        75% { transform: translateX(60px) scale(1.2) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 20px #22C55E); }
+        80%, 100% { transform: translateX(60px) scale(0) rotate(-180deg); opacity: 0; filter: none; }
+      }
+
+      /* Wrapper for Text & EQ (Slides right from center) */
+      .intro-wrapper { animation: split-wrapper 6s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+      @keyframes split-wrapper {
+        0%, 14% { transform: translateX(-60px); opacity: 0; filter: blur(10px); }
+        20%, 65% { transform: translateX(0px); opacity: 1; filter: blur(0px); }
+        71%, 100% { transform: translateX(-60px); opacity: 0; filter: blur(10px); }
+      }
+
+      /* Text Kinetic Skew */
+      .intro-text { transform-origin: 145px 60px; animation: text-pop 6s cubic-bezier(0.25, 1, 0.5, 1) infinite; }
+      @keyframes text-pop {
+        0%, 14% { transform: skewX(-20deg); }
+        20%, 65% { transform: skewX(0deg); }
+        71%, 100% { transform: skewX(20deg); }
+      }
+
+      /* EQ Reveal */
+      .intro-eq { transform-origin: 112px 60px; animation: eq-pop 6s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite; }
+      @keyframes eq-pop {
+        0%, 16% { transform: scaleY(0); }
+        20%, 65% { transform: scaleY(1); }
+        69%, 100% { transform: scaleY(0); }
+      }
+
+      /* Visual FX fade in/out cleanly */
+      .intro-fx { transform-origin: 50px 60px; animation: fx-pop 6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite; }
+      @keyframes fx-pop {
+        0%, 18% { opacity: 0; transform: scale(0.5); }
+        22%, 62% { opacity: 1; transform: scale(1); }
+        66%, 100% { opacity: 0; transform: scale(0.5); }
+      }
+
+      /* =========================================
+         2. CONTINUOUS ANIMATIONS (1.5s Rhythm)
+         ========================================= */
+      
+      .origin-play { transform-origin: 50px 60px; }
+      .origin-text { transform-origin: 220px 60px; }
+
+      @keyframes bass-impact {
+        0%, 100% { transform: scale(1); }
+        10% { transform: scale(1.22); filter: brightness(1.3); }
+        25% { transform: scale(0.95); }
+        40% { transform: scale(1.02); }
+      }
+
+      @keyframes shockwave {
+        0% { transform: scale(0.8); opacity: 0.8; stroke-width: 6px; }
+        30% { transform: scale(2.5); opacity: 0; stroke-width: 0px; }
+        100% { transform: scale(2.5); opacity: 0; stroke-width: 0px; }
+      }
+
+      @keyframes text-echo {
+        0% { transform: scale(1); opacity: 0.5; }
+        15% { transform: scale(1.08); opacity: 0; }
+        100% { transform: scale(1.08); opacity: 0; }
+      }
+
+      @keyframes spin-cw { 100% { transform: rotate(360deg); } }
+      @keyframes spin-ccw { 100% { transform: rotate(-360deg); } }
+
+      @keyframes glitch-cyan {
+        0%, 5%, 20%, 100% { transform: translate(0, 0); opacity: 0; }
+        10% { transform: translate(-4px, -2px); opacity: 0.9; }
+        12% { transform: translate(2px, 1px); opacity: 0.5; }
+      }
+      @keyframes glitch-magenta {
+        0%, 5%, 20%, 100% { transform: translate(0, 0); opacity: 0; }
+        10% { transform: translate(4px, 2px); opacity: 0.9; }
+        12% { transform: translate(-2px, -1px); opacity: 0.5; }
+      }
+
+      @keyframes shoot-1 { 0%, 100% { transform: translate(0,0) scale(1); opacity: 0; } 10% { opacity: 1; } 30% { transform: translate(-35px, -35px) scale(0); opacity: 0; } }
+      @keyframes shoot-2 { 0%, 100% { transform: translate(0,0) scale(1); opacity: 0; } 10% { opacity: 1; } 30% { transform: translate(40px, -20px) scale(0); opacity: 0; } }
+      @keyframes shoot-3 { 0%, 100% { transform: translate(0,0) scale(1); opacity: 0; } 10% { opacity: 1; } 30% { transform: translate(25px, 45px) scale(0); opacity: 0; } }
+      @keyframes shoot-4 { 0%, 100% { transform: translate(0,0) scale(1); opacity: 0; } 10% { opacity: 1; } 30% { transform: translate(-20px, 40px) scale(0); opacity: 0; } }
+
+      @keyframes eq-pulse {
+        0%, 100% { opacity: 1; }
+        10% { opacity: 0.7; filter: drop-shadow(0 0 8px #4ADE80); }
+      }
+
+      /* Applying 1.5s Rhythm FX */
+      .beat-core { animation: bass-impact 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite; }
+      .ripple-1 { animation: shockwave 1.5s ease-out infinite; }
+      .ripple-2 { animation: shockwave 1.5s ease-out 0.15s infinite; }
+      .tech-ring-1 { animation: spin-cw 10s linear infinite; }
+      .tech-ring-2 { animation: spin-ccw 15s linear infinite; }
+      .echo-1 { animation: text-echo 1.5s ease-out infinite; fill: #22C55E; }
+      .echo-2 { animation: text-echo 1.5s ease-out 0.1s infinite; fill: #10B981; }
+      .g-cyan { animation: glitch-cyan 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite; fill: #00FFFF; }
+      .g-magenta { animation: glitch-magenta 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite; fill: #FF00FF; }
+      .p1 { animation: shoot-1 1.5s ease-out infinite; }
+      .p2 { animation: shoot-2 1.5s ease-out infinite; }
+      .p3 { animation: shoot-3 1.5s ease-out infinite; }
+      .p4 { animation: shoot-4 1.5s ease-out infinite; }
+      .eq-group { animation: eq-pulse 1.5s ease-in-out infinite; }
+      /* ]]> */
+    </style>
+  </defs>
+
+  <!-- ================= CONTENT WRAPPER (Text & EQ) ================= -->
+  <!-- Controlled by the 6s master loop to slide out from behind the button -->
+  <g class="intro-wrapper">
+    
+    <!-- 1. Audio Equalizer -->
+    <g class="intro-eq">
+      <g class="eq-group" fill="#22C55E">
+        <rect x="100" y="55" width="4" height="10" rx="2">
+          <animate attributeName="y" values="55; 40; 55; 48; 55" dur="0.7s" repeatCount="indefinite" />
+          <animate attributeName="height" values="10; 40; 10; 24; 10" dur="0.7s" repeatCount="indefinite" />
+        </rect>
+        <rect x="108" y="50" width="4" height="20" rx="2">
+          <animate attributeName="y" values="50; 35; 55; 45; 50" dur="0.5s" repeatCount="indefinite" />
+          <animate attributeName="height" values="20; 50; 10; 30; 20" dur="0.5s" repeatCount="indefinite" />
+        </rect>
+        <rect x="116" y="58" width="4" height="4" rx="2">
+          <animate attributeName="y" values="58; 42; 58; 30; 58" dur="0.9s" repeatCount="indefinite" />
+          <animate attributeName="height" values="4; 36; 4; 60; 4" dur="0.9s" repeatCount="indefinite" />
+        </rect>
+        <rect x="124" y="52" width="4" height="16" rx="2">
+          <animate attributeName="y" values="52; 45; 56; 40; 52" dur="0.6s" repeatCount="indefinite" />
+          <animate attributeName="height" values="16; 30; 8; 40; 16" dur="0.6s" repeatCount="indefinite" />
+        </rect>
+      </g>
+    </g>
+
+    <!-- 2. Kinetic Typography -->
+    <g class="intro-text">
+      <!-- Echoes -->
+      <text x="145" y="78" class="logo-text echo-2 origin-text">Groovon</text>
+      <text x="145" y="78" class="logo-text echo-1 origin-text">Groovon</text>
+      <!-- Main Text -->
+      <text x="145" y="78" class="logo-text" fill="url(#shine)" filter="drop-shadow(0px 4px 8px rgba(0,0,0,0.5))">Groovon</text>
+    </g>
+
+  </g>
+
+  <!-- ================= PLAY BUTTON WRAPPER ================= -->
+  <!-- Pops up in the center, slides left, and then reverses the motion -->
+  <g class="intro-btn">
+    
+    <!-- Ambient Glow -->
+    <circle cx="50" cy="60" r="45" fill="#22C55E" filter="url(#ambient-aura)" opacity="0.4" />
+
+    <!-- FX Group (Visible only during the resting phase) -->
+    <g class="intro-fx">
+      <!-- Bass Shockwaves -->
+      <circle class="ripple-1 origin-play" cx="50" cy="60" r="22" fill="none" stroke="#4ADE80" />
+      <circle class="ripple-2 origin-play" cx="50" cy="60" r="22" fill="none" stroke="#059669" />
+
+      <!-- Tech Rotating Rings -->
+      <circle class="tech-ring-1 origin-play" cx="50" cy="60" r="32" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-dasharray="10 10 30 15 5 20" opacity="0.6" />
+      <circle class="tech-ring-2 origin-play" cx="50" cy="60" r="38" fill="none" stroke="#10B981" stroke-width="1" stroke-dasharray="40 20 5 10" opacity="0.3" />
+
+      <!-- Energy Particles -->
+      <circle class="p1 origin-play" cx="50" cy="60" r="2.5" fill="#4ADE80" filter="url(#neon-glow)" />
+      <circle class="p2 origin-play" cx="50" cy="60" r="1.5" fill="#ffffff" filter="url(#neon-glow)" />
+      <circle class="p3 origin-play" cx="50" cy="60" r="3" fill="#10B981" filter="url(#neon-glow)" />
+      <circle class="p4 origin-play" cx="50" cy="60" r="2" fill="#22C55E" filter="url(#neon-glow)" />
+    </g>
+
+    <!-- Core Beating Button -->
+    <g class="beat-core origin-play">
+      <circle cx="50" cy="60" r="24" fill="url(#coreGrad)" filter="url(#neon-glow)"/>
+      <path class="g-cyan" d="M 45 48 L 62 60 L 45 72 Z" />
+      <path class="g-magenta" d="M 45 48 L 62 60 L 45 72 Z" />
+      <path d="M 45 48 L 62 60 L 45 72 Z" fill="#09090b" stroke="#09090b" stroke-width="2" stroke-linejoin="round" />
+    </g>
+
+  </g>
+</svg>

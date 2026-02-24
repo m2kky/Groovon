@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groovon - Artist Intelligence</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; min-height: 100vh; }
+
+  header { padding: 24px 40px; border-bottom: 1px solid #1e1e2e; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, #1db954, #1ed760); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  header span { color: #666; font-size: 14px; }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+  .upload-zone { border: 2px dashed #2a2a3e; border-radius: 16px; padding: 60px 40px; text-align: center; cursor: pointer; transition: all 0.2s; background: #0f0f1a; }
+  .upload-zone:hover, .upload-zone.drag { border-color: #1db954; background: #0f1a12; }
+  .upload-zone svg { width: 48px; height: 48px; color: #1db954; margin-bottom: 16px; }
+  .upload-zone h2 { font-size: 20px; margin-bottom: 8px; }
+  .upload-zone p { color: #666; font-size: 14px; }
+  .upload-zone .formats { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+  .badge { background: #1e1e2e; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #888; }
+  #fileInput { display: none; }
+
+  .btn { background: #1db954; color: #000; border: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn:hover { background: #1ed760; transform: translateY(-1px); }
+  .btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+  .btn-outline { background: transparent; color: #1db954; border: 1px solid #1db954; }
+  .btn-outline:hover { background: #1db95420; }
+
+  .progress-section { margin-top: 32px; display: none; text-align: center; }
+  .progress-logo { width: 200px; height: 60px; margin: 0 auto 24px; display: block; }
+  .progress-bar { background: #1e1e2e; border-radius: 8px; height: 8px; overflow: hidden; margin: 12px 0; }
+  .progress-fill { background: linear-gradient(90deg, #1db954, #1ed760); height: 100%; border-radius: 8px; transition: width 0.3s; }
+  .progress-text { display: flex; justify-content: space-between; font-size: 13px; color: #888; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+  .stat-card { background: #0f0f1a; border: 1px solid #1e1e2e; border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .num { font-size: 32px; font-weight: 700; color: #1db954; }
+  .stat-card .label { font-size: 13px; color: #666; margin-top: 4px; }
+
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .export-btns { display: flex; gap: 8px; }
+
+  table { width: 100%; border-collapse: collapse; background: #0f0f1a; border-radius: 12px; overflow: hidden; }
+  th { background: #1e1e2e; padding: 12px 16px; text-align: left; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 12px 16px; border-bottom: 1px solid #1a1a2a; font-size: 14px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #12121e; }
+
+  .artist-cell { display: flex; align-items: center; gap: 10px; }
+  .artist-photo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #1e1e2e; }
+  .artist-name { font-weight: 600; }
+  .artist-title { font-size: 12px; color: #666; }
+
+  .confidence { display: inline-flex; align-items: center; gap: 6px; }
+  .conf-bar { width: 60px; height: 4px; background: #1e1e2e; border-radius: 2px; overflow: hidden; }
+  .conf-fill { height: 100%; border-radius: 2px; }
+  .conf-high { background: #1db954; }
+  .conf-mid { background: #f59e0b; }
+  .conf-low { background: #ef4444; }
+
+  .genre-tag { background: #1e1e2e; padding: 2px 8px; border-radius: 12px; font-size: 11px; color: #aaa; display: inline-block; margin: 2px; }
+  .link-icon { color: #1db954; text-decoration: none; font-size: 18px; margin-right: 6px; }
+  .link-icon:hover { color: #1ed760; }
+
+  .null-badge { color: #444; font-size: 12px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <object data="logo.svg" type="image/svg+xml" style="width:110px;height:33px;"></object>
+  <nav style="margin-left:auto;display:flex;align-items:center;gap:24px;">
+    <a href="index.html" style="color:#1db954;text-decoration:none;font-size:14px;">Upload</a>
+    <a href="artists.html" style="color:#888;text-decoration:none;font-size:14px;">Artists</a>
+    <button onclick="logout()" style="background:transparent;border:1px solid #333;color:#666;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='#333';this.style.color='#666'">Logout</button>
+  </nav>
+</header>
+
+<main>
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+    <h2>Drop your events file here</h2>
+    <p>or click to browse</p>
+    <div class="formats">
+      <span class="badge">Excel</span>
+      <span class="badge">JSON</span>
+      <span class="badge">Markdown</span>
+      <span class="badge">HTML</span>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.json,.md,.html,.htm">
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section" id="progressSection">
+    <object data="logo.svg" type="image/svg+xml" class="progress-logo"></object>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <strong id="progressLabel">Processing events...</strong>
+      <button class="btn btn-outline" onclick="cancelJob()" style="padding:6px 16px; font-size:13px;">Cancel</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text">
+      <span id="progressCount">0 / 0</span>
+      <span id="progressPct">0%</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats hidden" id="statsSection">
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total Events</div></div>
+    <div class="stat-card"><div class="num" id="statFound">0</div><div class="label">Artists Found</div></div>
+    <div class="stat-card"><div class="num" id="statAvgConf">0%</div><div class="label">Avg Confidence</div></div>
+    <div class="stat-card"><div class="num" id="statWithPhoto">0</div><div class="label">With Photos</div></div>
+  </div>
+
+  <!-- Results -->
+  <div class="hidden" id="resultsSection">
+    <div class="results-header">
+      <h2 style="font-size:18px;">Results</h2>
+      <div class="export-btns">
+        <button class="btn btn-outline" onclick="exportJSON()" style="padding:8px 18px; font-size:13px;">Export JSON</button>
+        <button class="btn" onclick="exportExcel()" style="padding:8px 18px; font-size:13px;">Export Excel</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Artist</th>
+          <th>Genres</th>
+          <th>Bio</th>
+          <th>Links</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+// Auth guard
+if (!sessionStorage.getItem('groovon_auth')) location.href = 'login.html?next=index.html';
+function logout() { sessionStorage.removeItem('groovon_auth'); location.href = 'login.html'; }
+
+const API = '/api';
+let currentJobId = null;
+let allResults = [];
+let ws = null;
+
+// Drag & Drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
+
+async function handleFile(file) {
+  if (!file) return;
+  const form = new FormData();
+  form.append('file', file);
+
+  zone.style.display = 'none';
+  document.getElementById('progressSection').style.display = 'block';
+  document.getElementById('progressLabel').textContent = `Uploading ${file.name}...`;
+
+  const res = await fetch(`${API}/upload`, { method: 'POST', body: form });
+  const data = await res.json();
+  currentJobId = data.job_id;
+
+  document.getElementById('progressLabel').textContent = `Processing ${data.total} events...`;
+  document.getElementById('progressCount').textContent = `0 / ${data.total}`;
+  connectWS(data.job_id, data.total);
+}
+
+function connectWS(jobId, total) {
+  const wsBase = `ws://${window.location.host}/api`;
+  ws = new WebSocket(`${wsBase}/ws/${jobId}`);
+
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    if (msg.__status__ === 'done') { finalizeResults(); return; }
+    allResults.push(msg);
+    appendRow(msg);
+    updateProgress(allResults.length, total);
+    updateStats();
+  };
+
+  ws.onerror = () => fallbackPoll(jobId, total);
+}
+
+function fallbackPoll(jobId, total) {
+  const iv = setInterval(async () => {
+    const job = await fetch(`${API}/jobs/${jobId}`).then(r => r.json());
+    const newResults = job.results.slice(allResults.length);
+    newResults.forEach(r => { allResults.push(r); appendRow(r); });
+    updateProgress(job.done, total);
+    updateStats();
+    if (job.status === 'done') { clearInterval(iv); finalizeResults(); }
+  }, 1500);
+}
+
+function cancelJob() {
+  if (ws) ws.close();
+  location.reload();
+}
+
+function updateProgress(done, total) {
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `${done} / ${total}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function updateStats() {
+  const found = allResults.filter(r => r.artist_name);
+  const avgConf = found.length ? Math.round(found.reduce((s, r) => s + r.confidence, 0) / found.length) : 0;
+  document.getElementById('statTotal').textContent = allResults.length;
+  document.getElementById('statFound').textContent = found.length;
+  document.getElementById('statAvgConf').textContent = avgConf + '%';
+  document.getElementById('statWithPhoto').textContent = allResults.filter(r => r.photo).length;
+  document.getElementById('statsSection').classList.remove('hidden');
+  document.getElementById('resultsSection').classList.remove('hidden');
+}
+
+function buildRow(r) {
+  const confClass = r.confidence >= 70 ? 'conf-high' : r.confidence >= 40 ? 'conf-mid' : 'conf-low';
+  const genres = (r.genres || []).slice(0, 3).map(g => `<span class="genre-tag">${g}</span>`).join('');
+  const bio = r.bio ? r.bio.substring(0, 80) + '...' : '<span class="null-badge">—</span>';
+  const nameDisplay = r.real_name ? `${r.artist_name} <span style="color:#666;font-size:11px;">(${r.real_name})</span>` : (r.artist_name || '<span class="null-badge">Not found</span>');
+  const links = [
+    r.spotify_url ? `<a href="${r.spotify_url}" target="_blank" class="link-icon" title="Spotify">🎵</a>` : '',
+    r.youtube_channel ? `<a href="${r.youtube_channel}" target="_blank" class="link-icon" title="YouTube">▶️</a>` : '',
+    r.wiki_url ? `<a href="${r.wiki_url}" target="_blank" class="link-icon" title="Wikipedia">📖</a>` : '',
+    r.discogs_url ? `<a href="${r.discogs_url}" target="_blank" class="link-icon" title="Discogs">💿</a>` : '',
+  ].join('') || '<span class="null-badge">—</span>';
+  return `<tr>
+    <td><div class="artist-cell">
+      ${r.photo ? `<img src="${r.photo}" class="artist-photo" onerror="this.style.display='none'">` : '<div class="artist-photo"></div>'}
+      <div><div class="artist-name">${nameDisplay}</div><div class="artist-title">${r.original_title}</div></div>
+    </div></td>
+    <td>${genres || '<span class="null-badge">—</span>'}</td>
+    <td style="max-width:200px;font-size:12px;color:#aaa;">${bio}</td>
+    <td>${links}</td>
+    <td><div class="confidence">
+      <div class="conf-bar"><div class="conf-fill ${confClass}" style="width:${r.confidence}%"></div></div>
+      <span style="font-size:12px;">${r.confidence}%</span>
+    </div></td>
+  </tr>`;
+}
+
+function appendRow(r) {
+  document.getElementById('resultsBody').insertAdjacentHTML('beforeend', buildRow(r));
+}
+
+function finalizeResults() {
+  document.getElementById('progressSection').style.display = 'none';
+  updateStats();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(allResults, null, 2)], { type: 'application/json' });
+  download(blob, 'groovon-results.json');
+}
+
+function exportExcel() {
+  const headers = ['original_title','artist_name','spotify_id','genres','bio','spotify_url','youtube_channel','photo','confidence'];
+  const rows = allResults.map(r => headers.map(h => Array.isArray(r[h]) ? r[h].join(', ') : (r[h] ?? '')));
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  download(blob, 'groovon-results.csv');
+}
+
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+</script>
+</body>
+</html>

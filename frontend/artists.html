@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Groovon — Artists</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0a0f; color:#e0e0e0; min-height:100vh; }
+
+header { padding:20px 40px; border-bottom:1px solid #1e1e2e; display:flex; align-items:center; justify-content:space-between; }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo h1 { font-size:22px; font-weight:700; background:linear-gradient(135deg,#1db954,#1ed760); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+nav a { color:#888; text-decoration:none; font-size:14px; margin-left:24px; transition:color .2s; }
+nav a:hover, nav a.active { color:#1db954; }
+
+.toolbar { max-width:1400px; margin:28px auto 0; padding:0 24px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.search-box { flex:1; min-width:200px; position:relative; }
+.search-box input { width:100%; background:#0f0f1a; border:1px solid #1e1e2e; border-radius:10px; padding:10px 16px 10px 40px; color:#e0e0e0; font-size:14px; outline:none; transition:border-color .2s; }
+.search-box input:focus { border-color:#1db954; }
+.search-box svg { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#555; width:16px; height:16px; }
+.filter-btn { background:#0f0f1a; border:1px solid #1e1e2e; border-radius:10px; padding:9px 14px; color:#888; font-size:13px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.filter-btn:hover,.filter-btn.active { border-color:#1db954; color:#1db954; }
+select.sort-select { background:#0f0f1a; border:1px solid #1e1e2e; border-radius:10px; padding:9px 14px; color:#888; font-size:13px; cursor:pointer; outline:none; }
+.count-badge { background:#1e1e2e; border-radius:20px; padding:4px 12px; font-size:13px; color:#666; white-space:nowrap; }
+
+main { max-width:1400px; margin:24px auto 60px; padding:0 24px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px; }
+
+.card { background:#0f0f1a; border:1px solid #1e1e2e; border-radius:16px; overflow:hidden; transition:transform .2s,border-color .2s,box-shadow .2s; display:flex; flex-direction:column; cursor:pointer; }
+.card:hover { transform:translateY(-4px); border-color:#2a2a4a; box-shadow:0 12px 40px rgba(0,0,0,.5); }
+
+.card-img-wrap { position:relative; }
+.card-cover { width:100%; height:190px; object-fit:cover; display:block; }
+.card-cover-placeholder { width:100%; height:190px; background:linear-gradient(135deg,#1a1a2e,#0f3460); display:flex; align-items:center; justify-content:center; font-size:60px; }
+.type-badge { position:absolute; top:10px; left:10px; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); border:1px solid #333; border-radius:20px; padding:3px 9px; font-size:10px; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
+.country-badge { position:absolute; top:10px; right:10px; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); border-radius:6px; padding:3px 7px; font-size:13px; }
+.artist-id-badge { position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); border-radius:6px; padding:2px 7px; font-size:10px; color:#555; font-family:monospace; }
+
+.conf-strip { height:3px; width:100%; flex-shrink:0; }
+.conf-strip.high { background:linear-gradient(90deg,#1db954,#1ed760); }
+.conf-strip.mid  { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.conf-strip.low  { background:linear-gradient(90deg,#ef4444,#f87171); }
+
+.card-body { padding:14px 16px 16px; display:flex; flex-direction:column; flex:1; }
+.card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:2px; gap:8px; }
+.card-name { font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+.conf-badge { font-size:11px; font-weight:600; padding:3px 8px; border-radius:20px; flex-shrink:0; }
+.conf-badge.high { background:#1db95420; color:#1db954; }
+.conf-badge.mid  { background:#f59e0b20; color:#f59e0b; }
+.conf-badge.low  { background:#ef444420; color:#ef4444; }
+
+.card-realname { font-size:12px; color:#555; margin-bottom:8px; }
+.card-location { font-size:11px; color:#4a6fa5; margin-bottom:8px; display:flex; align-items:center; gap:4px; }
+.card-location svg { width:11px; height:11px; flex-shrink:0; }
+
+.card-genres { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; min-height:22px; }
+.genre-tag { background:#1a1a2e; border:1px solid #2a2a4e; padding:3px 9px; border-radius:20px; font-size:11px; color:#8080b0; }
+
+.card-bio { font-size:12px; color:#666; line-height:1.55; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+.card-stats { display:flex; gap:0; margin-bottom:12px; background:#111118; border-radius:10px; overflow:hidden; }
+.stat { flex:1; display:flex; flex-direction:column; align-items:center; padding:8px 4px; border-right:1px solid #1a1a2a; }
+.stat:last-child { border-right:none; }
+.stat-icon { width:14px; height:14px; margin-bottom:3px; opacity:.7; }
+.stat-val { font-size:12px; font-weight:600; color:#c0c0e0; }
+.stat-lbl { font-size:9px; color:#444; margin-top:1px; text-transform:uppercase; letter-spacing:.3px; }
+
+.card-links { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+.link-btn { width:32px; height:32px; border-radius:8px; background:#151525; border:1px solid #1e1e2e; text-decoration:none; display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0; }
+.link-btn img { width:16px; height:16px; display:block; }
+.link-btn:hover { transform:scale(1.15); border-color:#333; background:#1e1e2e; }
+
+.card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid #151525; }
+.sources { display:flex; gap:4px; flex-wrap:wrap; }
+.source-label { font-size:10px; padding:2px 7px; border-radius:8px; }
+.src-spotify    { background:#1db95418; color:#1db954; }
+.src-deezer     { background:#a238ff18; color:#a238ff; }
+.src-lastfm     { background:#d5100718; color:#d51007; }
+.src-wikipedia  { background:#ffffff18; color:#aaa; }
+.src-youtube    { background:#ff000018; color:#ff4444; }
+.src-itunes     { background:#fc3c4418; color:#fc3c44; }
+.src-discogs    { background:#33333318; color:#888; }
+.src-musicbrainz{ background:#ba478f18; color:#ba478f; }
+.src-scrapling  { background:#60a5fa18; color:#60a5fa; }
+
+.empty { text-align:center; padding:80px 20px; color:#444; grid-column:1/-1; }
+.skeleton { animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.8} }
+.skel-cover { width:100%; height:190px; background:#1a1a2e; }
+.skel-line { height:12px; background:#1a1a2e; border-radius:6px; margin:8px 16px; }
+.skel-line.short { width:55%; }
+
+/* ── Modal ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); backdrop-filter:blur(6px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:#0f0f1a; border:1px solid #2a2a4a; border-radius:20px; width:100%; max-width:680px; max-height:90vh; overflow-y:auto; position:relative; }
+.modal-hero { position:relative; height:220px; }
+.modal-hero img { width:100%; height:100%; object-fit:cover; border-radius:20px 20px 0 0; }
+.modal-hero-placeholder { width:100%; height:100%; background:linear-gradient(135deg,#1a1a2e,#0f3460); border-radius:20px 20px 0 0; display:flex; align-items:center; justify-content:center; font-size:80px; }
+.modal-hero-overlay { position:absolute; inset:0; background:linear-gradient(to top,#0f0f1a 0%,transparent 60%); border-radius:20px 20px 0 0; }
+.modal-close { position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.6); border:1px solid #333; color:#aaa; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:2; }
+.modal-close:hover { background:#1e1e2e; color:#fff; }
+.modal-body { padding:20px 24px 28px; }
+.modal-title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:4px; }
+.modal-name { font-size:24px; font-weight:800; }
+.modal-actions { display:flex; gap:8px; flex-shrink:0; }
+.btn { padding:8px 16px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .2s; display:flex; align-items:center; gap:6px; }
+.btn-edit    { background:#1e1e2e; color:#aaa; border:1px solid #2a2a4a; }
+.btn-edit:hover { border-color:#a78bfa; color:#a78bfa; }
+.btn-refresh { background:#1db95420; color:#1db954; border:1px solid #1db95440; }
+.btn-refresh:hover { background:#1db95430; }
+.btn-refresh.loading { opacity:.6; pointer-events:none; }
+.modal-meta { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.modal-realname { font-size:13px; color:#666; }
+.modal-location { font-size:12px; color:#4a6fa5; display:flex; align-items:center; gap:4px; }
+.modal-id { font-size:11px; color:#444; font-family:monospace; background:#111118; padding:2px 8px; border-radius:6px; }
+.modal-conf { font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; }
+.modal-section { margin-bottom:18px; }
+.modal-section-title { font-size:11px; color:#555; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+.modal-bio { font-size:13px; color:#888; line-height:1.65; }
+.modal-stats { display:flex; gap:12px; flex-wrap:wrap; }
+.modal-stat { background:#111118; border-radius:10px; padding:10px 16px; display:flex; flex-direction:column; align-items:center; min-width:80px; }
+.modal-stat-val { font-size:16px; font-weight:700; color:#c0c0e0; }
+.modal-stat-lbl { font-size:10px; color:#555; margin-top:2px; display:flex; align-items:center; gap:4px; }
+.modal-stat-lbl img { width:12px; height:12px; }
+.modal-links { display:flex; gap:8px; flex-wrap:wrap; }
+.modal-link { display:flex; align-items:center; gap:7px; padding:8px 14px; border-radius:10px; background:#151525; border:1px solid #1e1e2e; text-decoration:none; font-size:12px; color:#888; transition:all .2s; }
+.modal-link:hover { border-color:#333; color:#e0e0e0; background:#1e1e2e; }
+.modal-link img { width:16px; height:16px; }
+.modal-genres { display:flex; flex-wrap:wrap; gap:6px; }
+.modal-sources { display:flex; gap:6px; flex-wrap:wrap; }
+
+.modal-facts { display:flex; flex-direction:column; gap:6px; }
+.modal-fact { display:flex; gap:12px; align-items:baseline; }
+.fact-lbl { font-size:11px; color:#555; text-transform:uppercase; letter-spacing:.5px; min-width:80px; flex-shrink:0; }
+.fact-val { font-size:13px; color:#c0c0e0; }
+
+/* ── Edit form ── */
+.edit-form { display:none; }
+.edit-form.open { display:block; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.form-field { display:flex; flex-direction:column; gap:5px; }
+.form-field.full { grid-column:1/-1; }
+.form-field label { font-size:11px; color:#555; text-transform:uppercase; letter-spacing:.5px; }
+.form-field input, .form-field textarea { background:#111118; border:1px solid #1e1e2e; border-radius:8px; padding:8px 12px; color:#e0e0e0; font-size:13px; outline:none; transition:border-color .2s; font-family:inherit; }
+.form-field input:focus, .form-field textarea:focus { border-color:#1db954; }
+.form-field textarea { resize:vertical; min-height:80px; }
+.form-actions { display:flex; gap:8px; justify-content:flex-end; }
+.btn-save   { background:#1db954; color:#000; font-weight:700; }
+.btn-save:hover { background:#1ed760; }
+.btn-cancel { background:#1e1e2e; color:#888; border:1px solid #2a2a4a; }
+</style>
+</head>
+<body>
+
+<header>
+  <object data="logo.svg" type="image/svg+xml" style="width:110px;height:33px;"></object>
+  <nav style="margin-left:auto;display:flex;align-items:center;gap:24px;">
+    <a href="index.html">Upload</a>
+    <a href="artists.html" class="active">Artists</a>
+    <button onclick="logout()" style="background:transparent;border:1px solid #333;color:#666;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;" onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'" onmouseout="this.style.borderColor='#333';this.style.color='#666'">Logout</button>
+  </nav>
+</header>
+
+<div class="toolbar">
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search artists, genres, country…" oninput="filterCards()">
+  </div>
+  <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+  <button class="filter-btn" onclick="setFilter('high',this)">● High</button>
+  <button class="filter-btn" onclick="setFilter('mid',this)">● Medium</button>
+  <button class="filter-btn" onclick="setFilter('low',this)">● Low</button>
+  <button class="filter-btn" id="emailFilterBtn" onclick="toggleEmailFilter(this)">✉ Has Email</button>
+  <select class="sort-select" id="sortSelect" onchange="filterCards()">
+    <option value="confidence">Sort: Confidence</option>
+    <option value="followers">Sort: Spotify Followers</option>
+    <option value="popularity">Sort: Popularity</option>
+    <option value="name">Sort: Name A–Z</option>
+  </select>
+  <span class="count-badge" id="countBadge">0 artists</span>
+</div>
+
+<main>
+  <div class="grid" id="grid">
+    <div class="card skeleton"><div class="skel-cover"></div><div class="skel-line" style="margin-top:16px"></div><div class="skel-line short"></div><div class="skel-line" style="margin-bottom:16px"></div></div>
+    <div class="card skeleton"><div class="skel-cover"></div><div class="skel-line" style="margin-top:16px"></div><div class="skel-line short"></div><div class="skel-line" style="margin-bottom:16px"></div></div>
+    <div class="card skeleton"><div class="skel-cover"></div><div class="skel-line" style="margin-top:16px"></div><div class="skel-line short"></div><div class="skel-line" style="margin-bottom:16px"></div></div>
+    <div class="card skeleton"><div class="skel-cover"></div><div class="skel-line" style="margin-top:16px"></div><div class="skel-line short"></div><div class="skel-line" style="margin-bottom:16px"></div></div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-hero" id="modalHero"></div>
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div class="modal-body">
+      <div class="modal-title-row">
+        <div class="modal-name" id="modalName"></div>
+        <div class="modal-actions">
+          <button class="btn btn-edit" onclick="toggleEdit()">✏ Edit</button>
+          <button class="btn btn-refresh" id="reEnrichBtn" onclick="reEnrich()">↻ Re-enrich</button>
+        </div>
+      </div>
+      <div class="modal-meta" id="modalMeta"></div>
+
+      <!-- Edit form -->
+      <div class="edit-form" id="editForm">
+        <div class="form-grid">
+          <div class="form-field"><label>Name</label><input id="f_name" type="text"></div>
+          <div class="form-field"><label>Real Name</label><input id="f_real_name" type="text"></div>
+          <div class="form-field"><label>Email</label><input id="f_email" type="email"></div>
+          <div class="form-field"><label>Official Website</label><input id="f_official_website" type="url"></div>
+          <div class="form-field"><label>Country</label><input id="f_country" type="text" placeholder="e.g. DE"></div>
+          <div class="form-field"><label>City</label><input id="f_locale_city" type="text"></div>
+          <div class="form-field"><label>Genres (comma separated)</label><input id="f_genres" type="text"></div>
+          <div class="form-field full"><label>Bio</label><textarea id="f_bio"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-cancel" onclick="toggleEdit()">Cancel</button>
+          <button class="btn btn-save" onclick="saveEdit()">Save</button>
+        </div>
+      </div>
+
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Auth guard
+if (!sessionStorage.getItem('groovon_auth')) location.href = 'login.html?next=artists.html';
+function logout() { sessionStorage.removeItem('groovon_auth'); location.href = 'login.html'; }
+
+const API = '/api';
+const SI  = 'https://cdn.simpleicons.org';
+let allArtists = [], activeFilter = 'all', emailOnly = false, currentArtist = null;
+
+async function loadArtists() {
+  const res = await fetch(`${API}/artists?limit=200`);
+  const data = await res.json();
+  allArtists = data.artists;
+  renderCards(allArtists);
+}
+
+function confClass(c) { return c >= 70 ? 'high' : c >= 40 ? 'mid' : 'low'; }
+
+function fmtNum(n) {
+  if (!n) return null;
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1)+'M';
+  if (n >= 1_000) return Math.round(n/1_000)+'K';
+  return String(n);
+}
+
+function countryFlag(code) {
+  if (!code || code.length !== 2) return '';
+  return code.toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}
+
+function siIcon(slug, hex, title, size=16) {
+  return `<img src="${SI}/${slug}/${hex}" alt="${title}" title="${title}" width="${size}" height="${size}" loading="lazy">`;
+}
+
+function svgIcon(path, color, size=16) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">${path}</svg>`;
+}
+
+const LINK_DEFS = [
+  { key:'spotify_url',      slug:'spotify',      hex:'1DB954', label:'Spotify'    },
+  { key:'youtube_channel',  slug:'youtube',      hex:'FF0000', label:'YouTube'    },
+  { key:'lastfm_url',       slug:'lastdotfm',    hex:'D51007', label:'Last.fm'    },
+  { key:'discogs_url',      slug:'discogs',      hex:'999999', label:'Discogs'    },
+  { key:'wiki_url',         slug:'wikipedia',    hex:'aaaaaa', label:'Wikipedia'  },
+];
+
+function buildLinks(a, size=32) {
+  const btns = LINK_DEFS
+    .filter(d => a[d.key])
+    .map(d => `<a class="link-btn" href="${a[d.key]}" target="_blank" title="${d.label}">${siIcon(d.slug,d.hex,d.label)}</a>`);
+  if (a.official_website) btns.push(`<a class="link-btn" href="${a.official_website}" target="_blank" title="Official Website">${svgIcon('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>','#a78bfa')}</a>`);
+  if (a.email)            btns.push(`<a class="link-btn" href="mailto:${a.email}" title="${a.email}">${svgIcon('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>','#60a5fa')}</a>`);
+  return btns.join('');
+}
+
+function buildSourceLabel(s) {
+  return `<span class="source-label src-${s}">${s}</span>`;
+}
+
+function buildCard(a) {
+  const cls   = confClass(a.confidence);
+  const flag  = countryFlag(a.country);
+  const genres = (a.genres||[]).slice(0,3).map(g=>`<span class="genre-tag">${g}</span>`).join('');
+  const bio   = a.bio ? a.bio.replace(/</g,'&lt;').substring(0,120)+'…' : '';
+
+  const stats = [];
+  if (a.spotify_followers) stats.push(`<div class="stat">${siIcon('spotify','1DB954','Spotify',14)}<span class="stat-val">${fmtNum(a.spotify_followers)}</span><span class="stat-lbl">Followers</span></div>`);
+  if (a.popularity)        stats.push(`<div class="stat">${siIcon('spotify','1DB954','Popularity',14)}<span class="stat-val">${a.popularity}</span><span class="stat-lbl">Popularity</span></div>`);
+  if (a.deezer_fans)       stats.push(`<div class="stat">${siIcon('deezer','A238FF','Deezer',14)}<span class="stat-val">${fmtNum(a.deezer_fans)}</span><span class="stat-lbl">Fans</span></div>`);
+
+  const location = [a.locale_city, a.country ? countryFlag(a.country)+' '+a.country : null].filter(Boolean).join(' · ');
+  const sources  = (a.sources||[]).map(buildSourceLabel).join('');
+
+  return `<div class="card" onclick="openModal(${a.id})" data-conf="${cls}" data-name="${(a.name||'').toLowerCase()}" data-email="${a.email?'1':'0'}">
+    <div class="card-img-wrap">
+      ${a.photo ? `<img class="card-cover" src="${a.photo}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">` : ''}
+      <div class="card-cover-placeholder" ${a.photo?'style="display:none"':''}>🎵</div>
+      ${a.artist_type ? `<div class="type-badge">${a.artist_type}</div>` : ''}
+      ${flag ? `<div class="country-badge" title="${a.country}">${flag}</div>` : ''}
+      <div class="artist-id-badge">#${a.id}</div>
+    </div>
+    <div class="conf-strip ${cls}"></div>
+    <div class="card-body">
+      <div class="card-header">
+        <div class="card-name" title="${a.name}">${a.name}</div>
+        <span class="conf-badge ${cls}">${a.confidence}%</span>
+      </div>
+      ${a.real_name ? `<div class="card-realname">${a.real_name}</div>` : ''}
+      ${location ? `<div class="card-location">${svgIcon('<path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>','#4a6fa5',11)} ${location}</div>` : ''}
+      <div class="card-genres">${genres}</div>
+      ${stats.length ? `<div class="card-stats">${stats.join('')}</div>` : ''}
+      ${bio ? `<div class="card-bio">${bio}</div>` : ''}
+      <div class="card-links" onclick="event.stopPropagation()">${buildLinks(a)}</div>
+      <div class="card-footer">
+        <div class="sources">${sources}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCards(artists) {
+  const grid = document.getElementById('grid');
+  if (!artists.length) {
+    grid.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:64px;height:64px;opacity:.3;display:block;margin:0 auto 16px"><path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg><p>No artists found</p></div>`;
+  } else {
+    grid.innerHTML = artists.map(buildCard).join('');
+  }
+  document.getElementById('countBadge').textContent = `${artists.length} artist${artists.length!==1?'s':''}`;
+}
+
+function filterCards() {
+  const q    = document.getElementById('searchInput').value.toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  let filtered = allArtists.filter(a => {
+    if (activeFilter !== 'all' && confClass(a.confidence) !== activeFilter) return false;
+    if (emailOnly && !a.email) return false;
+    if (q && ![(a.name||''),(a.bio||''),(a.real_name||''),(a.country||''),...(a.genres||[])].some(v=>v.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  filtered.sort((a,b) => {
+    if (sort==='followers')  return (b.spotify_followers||0)-(a.spotify_followers||0);
+    if (sort==='popularity') return (b.popularity||0)-(a.popularity||0);
+    if (sort==='name')       return (a.name||'').localeCompare(b.name||'');
+    return (b.confidence||0)-(a.confidence||0);
+  });
+  renderCards(filtered);
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn:not(#emailFilterBtn)').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCards();
+}
+
+function toggleEmailFilter(btn) {
+  emailOnly = !emailOnly;
+  btn.classList.toggle('active', emailOnly);
+  filterCards();
+}
+
+// ── Modal ──
+async function openModal(id) {
+  let a = allArtists.find(x => x.id === id);
+  if (!a) {
+    const res = await fetch(`${API}/artists/${id}`);
+    a = await res.json();
+  }
+  currentArtist = a;
+  const cls = confClass(a.confidence);
+  const flag = countryFlag(a.country);
+
+  // Hero
+  const hero = document.getElementById('modalHero');
+  hero.innerHTML = a.photo
+    ? `<img src="${a.photo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="modal-hero-placeholder" style="display:none">🎵</div>`
+    : `<div class="modal-hero-placeholder">🎵</div>`;
+  hero.innerHTML += `<div class="modal-hero-overlay"></div>`;
+
+  document.getElementById('modalName').textContent = a.name;
+
+  // Meta row
+  const metaParts = [];
+  if (a.real_name) metaParts.push(`<span class="modal-realname">${a.real_name}</span>`);
+  if (a.locale_city || a.country) {
+    const loc = [a.locale_city, flag ? `${flag} ${a.country}` : a.country].filter(Boolean).join(', ');
+    metaParts.push(`<span class="modal-location">${svgIcon('<path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>','#4a6fa5',12)} ${loc}</span>`);
+  }
+  if (a.artist_type) metaParts.push(`<span class="source-label src-musicbrainz">${a.artist_type}</span>`);
+  metaParts.push(`<span class="modal-id">#${a.id}</span>`);
+  metaParts.push(`<span class="conf-badge modal-conf ${cls}">${a.confidence}% confidence</span>`);
+  document.getElementById('modalMeta').innerHTML = metaParts.join('');
+
+  // Content
+  let html = '';
+
+  if (a.bio) html += `<div class="modal-section"><div class="modal-section-title">Bio</div><div class="modal-bio">${a.bio.replace(/</g,'&lt;')}</div></div>`;
+
+  // Infobox facts
+  const facts = [];
+  if (a.born)         facts.push(`<div class="modal-fact"><span class="fact-lbl">Born</span><span class="fact-val">${a.born}${a.birthplace ? ' · '+a.birthplace : ''}</span></div>`);
+  if (a.years_active) facts.push(`<div class="modal-fact"><span class="fact-lbl">Active</span><span class="fact-val">${a.years_active}</span></div>`);
+  if ((a.occupations||[]).length) facts.push(`<div class="modal-fact"><span class="fact-lbl">Occupation</span><span class="fact-val">${a.occupations.join(', ')}</span></div>`);
+  if ((a.instruments||[]).length) facts.push(`<div class="modal-fact"><span class="fact-lbl">Instruments</span><span class="fact-val">${a.instruments.join(', ')}</span></div>`);
+  if ((a.record_labels||[]).length) facts.push(`<div class="modal-fact"><span class="fact-lbl">Labels</span><span class="fact-val">${a.record_labels.join(', ')}</span></div>`);
+  if (facts.length) html += `<div class="modal-section"><div class="modal-section-title">Info</div><div class="modal-facts">${facts.join('')}</div></div>`;
+
+  // Stats
+  const stats = [];
+  if (a.spotify_followers) stats.push(`<div class="modal-stat"><span class="modal-stat-val">${fmtNum(a.spotify_followers)}</span><span class="modal-stat-lbl">${siIcon('spotify','1DB954','Spotify',12)} Followers</span></div>`);
+  if (a.popularity)        stats.push(`<div class="modal-stat"><span class="modal-stat-val">${a.popularity}/100</span><span class="modal-stat-lbl">${siIcon('spotify','1DB954','Spotify',12)} Popularity</span></div>`);
+  if (a.deezer_fans)       stats.push(`<div class="modal-stat"><span class="modal-stat-val">${fmtNum(a.deezer_fans)}</span><span class="modal-stat-lbl">${siIcon('deezer','A238FF','Deezer',12)} Fans</span></div>`);
+  if (stats.length) html += `<div class="modal-section"><div class="modal-section-title">Stats</div><div class="modal-stats">${stats.join('')}</div></div>`;
+
+  // Genres
+  if ((a.genres||[]).length) {
+    html += `<div class="modal-section"><div class="modal-section-title">Genres</div><div class="modal-genres">${(a.genres||[]).map(g=>`<span class="genre-tag">${g}</span>`).join('')}</div></div>`;
+  }
+
+  // Links (with labels in modal)
+  const modalLinks = LINK_DEFS.filter(d=>a[d.key]).map(d =>
+    `<a class="modal-link" href="${a[d.key]}" target="_blank">${siIcon(d.slug,d.hex,d.label)} ${d.label}</a>`);
+  if (a.official_website) modalLinks.push(`<a class="modal-link" href="${a.official_website}" target="_blank">${svgIcon('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>','#a78bfa')} Website</a>`);
+  if (a.email)            modalLinks.push(`<a class="modal-link" href="mailto:${a.email}">${svgIcon('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>','#60a5fa')} ${a.email}</a>`);
+
+  // Social links from scraping
+  const SOCIAL_ICONS = {
+    instagram:  ['instagram',  'E4405F', 'Instagram'],
+    facebook:   ['facebook',   '1877F2', 'Facebook'],
+    twitter:    ['x',          'ffffff', 'X / Twitter'],
+    tiktok:     ['tiktok',     'ffffff', 'TikTok'],
+    soundcloud: ['soundcloud', 'FF3300', 'SoundCloud'],
+    bandcamp:   ['bandcamp',   '1DA0C3', 'Bandcamp'],
+    youtube:    ['youtube',    'FF0000', 'YouTube'],
+    spotify:    ['spotify',    '1DB954', 'Spotify'],
+  };
+  const sl = a.social_links || {};
+  Object.entries(sl).forEach(([platform, url]) => {
+    if (!url) return;
+    const def = SOCIAL_ICONS[platform];
+    if (def) modalLinks.push(`<a class="modal-link" href="${url}" target="_blank">${siIcon(def[0],def[1],def[2])} ${def[2]}</a>`);
+  });
+  if (modalLinks.length) html += `<div class="modal-section"><div class="modal-section-title">Links</div><div class="modal-links">${modalLinks.join('')}</div></div>`;
+
+  // Sources
+  if ((a.sources||[]).length) html += `<div class="modal-section"><div class="modal-section-title">Data Sources</div><div class="modal-sources">${(a.sources||[]).map(buildSourceLabel).join('')}</div></div>`;
+
+  // Press
+  if ((a.press_urls||[]).length) {
+    const pressLinks = (a.press_urls||[]).map(u => {
+      const dom = u.split('/')[2]?.replace('www.','') || u;
+      return `<a class="modal-link" href="${u}" target="_blank">${svgIcon('<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>','#f59e0b')} ${dom}</a>`;
+    }).join('');
+    html += `<div class="modal-section"><div class="modal-section-title">Press &amp; Web</div><div class="modal-links">${pressLinks}</div></div>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('editForm').classList.remove('open');
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentArtist = null;
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeModalDirect(); });
+
+function toggleEdit() {
+  const form = document.getElementById('editForm');
+  const content = document.getElementById('modalContent');
+  if (form.classList.contains('open')) {
+    form.classList.remove('open');
+    content.style.display = '';
+    return;
+  }
+  const a = currentArtist;
+  document.getElementById('f_name').value           = a.name || '';
+  document.getElementById('f_real_name').value      = a.real_name || '';
+  document.getElementById('f_email').value          = a.email || '';
+  document.getElementById('f_official_website').value = a.official_website || '';
+  document.getElementById('f_country').value        = a.country || '';
+  document.getElementById('f_locale_city').value    = a.locale_city || '';
+  document.getElementById('f_genres').value         = (a.genres||[]).join(', ');
+  document.getElementById('f_bio').value            = a.bio || '';
+  form.classList.add('open');
+  content.style.display = 'none';
+}
+
+async function saveEdit() {
+  const payload = {
+    name:             document.getElementById('f_name').value.trim() || undefined,
+    real_name:        document.getElementById('f_real_name').value.trim() || undefined,
+    email:            document.getElementById('f_email').value.trim() || undefined,
+    official_website: document.getElementById('f_official_website').value.trim() || undefined,
+    country:          document.getElementById('f_country').value.trim() || undefined,
+    locale_city:      document.getElementById('f_locale_city').value.trim() || undefined,
+    genres:           document.getElementById('f_genres').value.trim() ? document.getElementById('f_genres').value.split(',').map(s=>s.trim()).filter(Boolean) : undefined,
+    bio:              document.getElementById('f_bio').value.trim() || undefined,
+  };
+  Object.keys(payload).forEach(k => payload[k]===undefined && delete payload[k]);
+  const res = await fetch(`${API}/artists/${currentArtist.id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+  if (res.ok) {
+    // Refresh artist from list
+    const data = await fetch(`${API}/artists?limit=200`).then(r=>r.json());
+    const updated = data.artists.find(x => x.id === currentArtist.id);
+    if (updated) {
+      const idx = allArtists.findIndex(a=>a.id===currentArtist.id);
+      if (idx !== -1) allArtists[idx] = updated;
+      filterCards();
+      await openModal(currentArtist.id);
+    }
+  }
+}
+
+async function reEnrich() {
+  const btn = document.getElementById('reEnrichBtn');
+  btn.classList.add('loading');
+  btn.textContent = '↻ Working…';
+  await fetch(`${API}/artists/${currentArtist.id}/re-enrich`, { method:'POST' });
+  // Poll until done (max 60s)
+  let tries = 0;
+  const poll = setInterval(async () => {
+    tries++;
+    const data = await fetch(`${API}/artists?limit=200`).then(r=>r.json());
+    const updated = data.artists.find(x => x.id === currentArtist.id);
+    const changed = updated && updated.last_enriched_at !== currentArtist.last_enriched_at;
+    if (changed || tries > 30) {
+      clearInterval(poll);
+      if (updated) {
+        const idx = allArtists.findIndex(a=>a.id===currentArtist.id);
+        if (idx !== -1) allArtists[idx] = updated;
+      }
+      filterCards();
+      btn.classList.remove('loading');
+      btn.textContent = '↻ Re-enrich';
+      if (updated) await openModal(currentArtist.id);
+    }
+  }, 2000);
+}
+
+loadArtists();
+</script>
+</body>
+</html>
