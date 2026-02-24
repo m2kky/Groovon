@@ -33,7 +33,7 @@ services:
       - "80:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx:/etc/nginx/conf.d:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.groovon-frontend.rule=Host(`groovon.muhammedmekky.com`)"
